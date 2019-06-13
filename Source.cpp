@@ -1,78 +1,77 @@
 #include <iostream>
-using namespace std;
-
-typedef char elementtype;
-#define mxl 10
-
-struct QUEUE {
-	elementtype elements[mxl];
-	int front;
-	int rear;
+typedef char nametype[20];
+struct celltype {
+	nametype element;
+	celltype* next;
 };
-int ADDONE(int i) {
-	return i % mxl + 1;
-}
-void MAKENULL(QUEUE& Q) {
-	Q.front = 1;
-	Q.rear = mxl;
-}
-bool EMPTY(QUEUE& Q) {
-	if (ADDONE(Q.rear) == Q.front)
-		return true;
-	return false;
+const int DICT_SIZE = 5;
+typedef celltype* DICTIONARY[DICT_SIZE];
+
+//хеш-функція
+int hash(nametype x) {
+	int sum = 0;
+	for (unsigned int i = 0; i < strlen(x); i++)
+		sum += (int)x[i];
+
+	return sum % (DICT_SIZE);
 }
 
-elementtype FRONT(QUEUE& Q) {
-	if (EMPTY(Q)) {
-		cout << "queue is empty" << endl;
-		return NULL;
-	}
-	else
-		return Q.elements[Q.front];
+void MAKENULL(DICTIONARY A) {
+	for (int i = 0; i < DICT_SIZE - 1; i++)
+		A[i] = NULL;
+}
 
-}
-void ENQUEUE(elementtype x, QUEUE& Q) {
-	if (ADDONE(ADDONE(Q.rear)) == Q.front) {
-		cout << "queue is overflow" << endl;
-		return;
-	}
-	else {
-		Q.rear = ADDONE(Q.rear);
-		Q.elements[Q.rear] = x;
-	}
-}
-void DEQUEUE(QUEUE& Q) {
-	if (EMPTY(Q)) {
-		cout << "queue is empty" << endl;
-		return;
-	}
-	else {
-		Q.front = ADDONE(Q.front);
+bool MEMBER(nametype x, DICTIONARY A) {
+	celltype* current;
+	current = A[hash(x)];
+
+	while (current != NULL) {
+		if (current->element == x)
+			return true;
+		else
+			current = current->next;
+		return false;
 	}
 }
 
-int main()
-{
-	QUEUE Q = QUEUE();
-	char c;
-	MAKENULL(Q);
-	cin >> c;
 
-	while (c != '=') {
-		ENQUEUE(c, Q);
-		cin >> c;
+void INSERT(nametype x, DICTIONARY * A) {
+	int bucket;
+	celltype* oldheader;
+	celltype* newheader = new celltype;
+	*newheader->element = *x;
+	
+
+	if (MEMBER(x, *A) == false) {
+		bucket = hash(x);
+		oldheader = *A[bucket];
+		newheader->next = oldheader;
+		//celltype *  A[bucket] = new celltype ;
+		*A[bucket] = newheader;
+		
 	}
+}
 
-	DEQUEUE(Q);
-	DEQUEUE(Q);
-	ENQUEUE('<', Q);
 
-	while (!EMPTY(Q)) {
-		printf("%c,", FRONT(Q));
-		DEQUEUE(Q);
+void DELETE(nametype x, DICTIONARY A) {
+	int bucket;
+	celltype* current = new celltype;
+
+	bucket = hash(x);
+	if (A[bucket] != NULL) {
+
+		if (A[bucket]->element == x)//перший елемент
+			A[bucket] = A[bucket]->next;
+
+		else
+			current = A[bucket];
+		while (current->next != NULL) {
+			if (current->next->element == x) {
+				current->next = current->next->next;
+				return;
+			}
+			else
+				current = current->next;
+		}
 	}
-	cout << endl;
-
-	system("pause");
-	return 0;
 }
